@@ -25,9 +25,18 @@ router.get('/scour', function(req, res, next) {
         // Next, we'll utilize the cheerio library on the returned html which will essentially give us jQuery functionality
         var parsedHTML = cheerio.load(html);
 
+        // Map over the parsed HTML to find href's inside <a> tags
+        console.log("links href\'s");
         parsedHTML('a').map(function(i, link) {
           var href = cheerio(link).attr('href');
           console.log(href);
+        });
+
+        // Map over the parsed HTML to find src's inside <img> tags
+        console.log("image src'\s");
+        parsedHTML('img').map(function(i, link) {
+          var src = cheerio(link).attr('src');
+          console.log(src);
         });
       }
   });
