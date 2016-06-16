@@ -36,7 +36,7 @@ var requestHTML = function (url) {
 
     if (error) { console.log(error); }
 
-    else { find(cheerio.load(html)); }
+    else if (response.statusCode === 200) { find(cheerio.load(html)); }
 
   });
 
