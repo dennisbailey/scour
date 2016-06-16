@@ -9,11 +9,12 @@ var images = [];
 var findUnique = function (input) {
   return input.sort().filter(function(item, pos, arr) {
       return !pos || item != arr[pos - 1];
-  })
-}
+  });
+};
 
 // Find href and src attributes within <a> and <img> tags respectively
 var find = function (parsedHTML) {
+
   // Map over the parsed HTML to find href's inside <a> tags
   parsedHTML('a').map(function(i, link) {
     var href = cheerio(link).attr('href');
@@ -25,8 +26,6 @@ var find = function (parsedHTML) {
     var src = cheerio(link).attr('src');
     images.push(src);
   });
-  
-  
 
 };
 
@@ -38,7 +37,7 @@ var requestHTML = function (url) {
     if (error) { console.log(error); }
 
     else { find(cheerio.load(html)); }
-        
+
   });
 
 };
