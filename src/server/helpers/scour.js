@@ -1,5 +1,6 @@
 var cheerio = require('cheerio');
 var request = require('request');
+var URL = require('url');
 
 var links = [];
 var images = [];
