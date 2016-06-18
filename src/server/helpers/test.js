@@ -11,6 +11,7 @@ var url = new URL(START_URL);
 var baseUrl = url.protocol + "//" + url.hostname;
 
 pagesToVisit.push(START_URL);
+
 crawl();
 
 function crawl() {
@@ -34,25 +35,47 @@ function visitPage(url, callback) {
 
   // Make the request
   console.log("Visiting page " + url);
+  
   request(url, function(error, response, body) {
+    
     // Check status code (200 is HTTP OK)
     console.log("Status code: " + response.statusCode);
+    
     if(response.statusCode !== 200) {
       callback();
       return;
     }
+    
     // Parse the document body
     var $ = cheerio.load(body);
+    
     collectInternalLinks($);
+    
     // In this short program, our callback is just calling crawl()
-       callback();
+    callback();
+  
   });
 }
 
 function collectInternalLinks($) {
   var relativeLinks = $("a[href^='/']");
+  var absoluteLinks = $("a[href^='http']")
   console.log("Found " + relativeLinks.length + " relative links on page");
+  console.log("Found " + absoluteLinks.length + " aboslute links on page");
+  
   relativeLinks.each(function() {
       pagesToVisit.push(baseUrl + $(this).attr('href'));
   });
+  
+  console.log(absoluteLinks[0]);
+  
+//   absoluteLinks.each(function() {
+//       pagesToVisit.push($(this).attr('href'));
+//   });
+  
+  
 }
+
+module.exports = {
+  visitPage : visitPage
+};
