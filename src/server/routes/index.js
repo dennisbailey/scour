@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 // var request = require('request');
 // var cheerio = require('cheerio');
+// var rp = require('request-promise');
 var scour = require('../helpers/scour.js');
 // var test = require('../helpers/test.js');
 
@@ -12,11 +13,10 @@ router.get('/', function(req, res, next) {
 
 router.get('/scour', function(req, res, next) {
   // The URL we will scour
-  url = req.query.url || 'http://www.sweetactionicecream.com/';
+  var url = req.query.url || 'http://www.sweetactionicecream.com/';
 
-//   res.send('scraping...')
+  res.send('scraping...')
   scour.requestHTML(url);
-  
     
 });
 
