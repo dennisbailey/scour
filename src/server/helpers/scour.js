@@ -19,7 +19,6 @@ function find (parsedHTML) {
   var links = [];
   var images = [];
 
-
   // Map over the parsed HTML to find href's inside <a> tags
   parsedHTML('a').map(function(i, link) {
     var href = cheerio(link).attr('href');
@@ -62,14 +61,18 @@ function requestHTML (url) {
   
   // Scour pages in the pagesToVisit array as long as there are pages left to visit
   while (pagesToVisit.length) {
+    // Determine the next page to scour
     var next = pagesToVisit.pop();
     var nextUrlPathname = new parseURL(next).pathname;
     var nextPageToVisit = baseUrlHostname + nextUrlPathname;
     
+    // Save this page to the list of pages visited
     pagesVisited[nextPageToVisit] = true;
     
+    // Create a valid URL for the request
     var httpNextPage = 'http://' + nextPageToVisit;
     
+    // Pull down the HTML and scour it
     requestPromise(httpNextPage)
     .then( function (html) { find(cheerio.load(html)) })
     .catch( function (error) { console.log('ERROR: ', error); return error; });
