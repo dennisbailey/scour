@@ -15,14 +15,9 @@ router.get('/scour', function(req, res, next) {
   // The URL we will scour
   var url = req.query.url || 'http://www.sweetactionicecream.com/';
 
-  res.send('scraping...')
+  res.send('scouring...')
+  
   scour.requestHTML(url);
-    
-});
-
-router.get('/test', function(req, res, next) {
-
-  test.visitPage();
     
 });
 

@@ -64,26 +64,33 @@ function findPromise(storedHTML) {
 // Parse the HTML for a give URL
 function requestHTML (url) {
 
+if (url) {
   // Determine the hostname for the starting URL
   baseUrlHostname = new parseURL(url).hostname.replace(/^www\./,'');
 
   // Populate the list of pages to visit with the hostname to start our search
   pagesToVisit.push('http://' + url.replace(/^(https?:\/\/)?(www\.)?/,''));
-
+}
   // Scour pages in the pagesToVisit array as long as there are pages left to visit
-  do {
+//   do {
+  
+  if (!pagesToVisit.length) { return pagesVisited }
+  
+  else {
+  
     // Determine the next page to scour
     var httpNextPage = nextPage();
     
     // Pull down the HTML and scour it
     requestPromise(httpNextPage)
     .then(findPromise)
-    .then( function (result) { console.log('pages to visit', result); return result;  })
+    .then( function (result) { requestHTML ()  })
     .catch( function (error) { console.log('ERROR: ', error); return error; });
+ 
+ }   
+//     console.log('end of do while block');
     
-    console.log('end of do while block');
-    
-  } while (pagesToVisit.length);
+//   } while (pagesToVisit.length);
 
 }
 
@@ -99,9 +106,11 @@ function requestPromise(addrCurrPage) {
 
 // Cleanup and standardize links for comparison
 function linkCleanup(links) {
-
+console.log(links);
   // Convert relative links to absolute links
   for (var i = 0; i < links.length; i++) {
+    console.log('lonks', links[i]);
+    if (links[i] === undefined) { continue; }
     if (links[i].charAt(0) === '/') { links[i] = baseUrlHostname + links[i]; }
   }
 
