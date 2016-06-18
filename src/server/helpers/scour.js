@@ -11,16 +11,6 @@ var pagesToVisit = [];
 // Store the hostname that starts our search
 var baseUrlHostname;
 
-// var counter = 1;
-
-// Find unique values by sorting the array and checking a value against the previous value
-// This is destructive
-function findUnique (input) {
-  return input.sort().filter(function(item, pos, arr) {
-      return !pos || item != arr[pos - 1];
-  });
-};
-
 
 // Find href and src attributes within <a> and <img> tags respectively
 function find (parsedHTML) {
@@ -41,27 +31,7 @@ function find (parsedHTML) {
     images.push(src);
   });
   
-  
-//   // Convert relative links to absolute links
-//   for (var i = 0; i < links.length; i++) { 
-//     if (links[i].charAt(0) === '/') { links[i] = baseUrlHostname + links[i] }
-//   }
-//   
-//   
-//   // Remove duplicate links and strip the protocol and the www.
-//   var uniqueLinks = findUnique(links);
-//   
-//   // Standardize the links scraped from the current page by removing the protocol and the www.
-//   var parsedUniqueLinks = [];
-//     
-//   uniqueLinks.forEach(function(el){
-//     var hostname = new parseURL(el).hostname;
-//     var pathname = new parseURL(el).pathname;
-//     var concat = hostname + pathname;
-//     var cleanup = 'http://' + concat.replace(/^(https?:\/\/)?(www\.)?/,'');
-//     parsedUniqueLinks.push(cleanup)
-//   });
-  
+  // Remove duplicates and standardize the link format of all the links found on the current page
   var parsedUniqueLinks = linkCleanup(links);
  
   // Push new links that haven't yet been crawled to the array of pages to visit
@@ -87,38 +57,28 @@ function requestHTML (url) {
   // Determine the hostname for the starting URL
   baseUrlHostname = new parseURL(url).hostname.replace(/^www\./,'');
   
+  // Populate the list of pages to visit with the hostname to start our search
   pagesToVisit.push('http://' + url.replace(/^(https?:\/\/)?(www\.)?/,''));
-    
+  
+  // Scour pages in the pagesToVisit array as long as there are pages left to visit
   while (pagesToVisit.length) {
     var next = pagesToVisit.pop();
     var nextUrlPathname = new parseURL(next).pathname;
-    var currPage = baseUrlHostname + nextUrlPathname;
+    var nextPageToVisit = baseUrlHostname + nextUrlPathname;
     
-    pagesVisited[currPage] = true;
+    pagesVisited[nextPageToVisit] = true;
     
-    var addrCurrPage = 'http://' + currPage;
+    var httpNextPage = 'http://' + nextPageToVisit;
     
-    requestPromise(addrCurrPage)
+    requestPromise(httpNextPage)
     .then( function (html) { find(cheerio.load(html)) })
     .catch( function (error) { console.log('ERROR: ', error); return error; });
-    
-//     request(addrCurrPage, function(error, response, html) {
-//   
-//       if (error) { console.log('ERROR: ', error); }
-//   
-//       else if (response.statusCode === 200) { 
-//               
-//         // Parse the HTML with cheerio and pass it to the find function
-//         find(cheerio.load(html)); 
-//         
-//       }
-//         
-//     })
     
   }
   
 };
 
+// Add a promise to the request
 function requestPromise(addrCurrPage) {
   return new Promise(function(resolve, reject) {
     request(addrCurrPage, function(error, response, html) {
@@ -128,7 +88,7 @@ function requestPromise(addrCurrPage) {
   });
 };
 
-
+// Cleanup and standardize links for comparison
 function linkCleanup(links) {
   
   // Convert relative links to absolute links
@@ -150,9 +110,18 @@ function linkCleanup(links) {
     parsedUniqueLinks.push(cleanup)
   });
   
+  // return an array of links
   return parsedUniqueLinks;
 
 }
+
+// Find unique values by sorting the array and checking a value against the previous value
+// This is destructive
+function findUnique (input) {
+  return input.sort().filter(function(item, pos, arr) {
+      return !pos || item != arr[pos - 1];
+  });
+};
 
 
 module.exports = {
