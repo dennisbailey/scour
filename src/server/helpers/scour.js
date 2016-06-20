@@ -8,6 +8,8 @@ var pagesVisited = {};
 // Store pages that need to be crawled
 var pagesToVisit = [];
 
+var results = {};
+
 // Store the hostname that starts our search
 var baseUrlHostname;
 
@@ -19,39 +21,43 @@ function findPromise(storedHTML) {
     if (storedHTML) {
       // Parse the HTML with cheerio
       var parsedHTML = cheerio.load(storedHTML);
-      
+
       // Declare holding arrays for links and image sources
       var links = [];
       var images = [];
-    
+
       // Map over the parsed HTML to find href's inside <a> tags
       parsedHTML('a').map(function(i, link) {
         var href = cheerio(link).attr('href');
         links.push(href);
       });
-    
+
       parsedHTML('img').map(function(i, link) {
         var src = cheerio(link).attr('src');
         images.push(src);
       });
-    
+
       // Remove duplicates and standardize the link format of all the links found on the current page
       var parsedUniqueLinks = linkCleanup(links);
-    
+
       // Push new links that haven't yet been crawled to the array of pages to visit
       for (var i = 0; i < parsedUniqueLinks.length; i++) {
-    
+
         var parsedBaseHostname = new parseURL(parsedUniqueLinks[i]).hostname;
         var parsedBasePathname = new parseURL(parsedUniqueLinks[i]).pathname;
         var concatParsedBase = parsedBaseHostname.replace(/^www\./,'') + parsedBasePathname;
-    
+
         if ( pagesVisited[concatParsedBase] !== true && pagesVisited[concatParsedBase + '/'] !== true && parsedBaseHostname === baseUrlHostname ) { pagesToVisit.push(parsedUniqueLinks[i]); }
       }
-    
+
+      console.log('images: ', images);
       console.log('visited: ', pagesVisited);
       console.log('to visit: ', pagesToVisit);
-    
-      resolve(pagesToVisit.length);
+      
+      results.siteMap = pagesVisited;
+      results.images = images; 
+      
+      resolve(results);
     }
 
     else { reject(Error("there was an error in the find function")); }
@@ -73,23 +79,24 @@ if (url) {
 }
   // Scour pages in the pagesToVisit array as long as there are pages left to visit
 //   do {
-  
-  if (!pagesToVisit.length) { return pagesVisited }
-  
+
+  if (!pagesToVisit.length) { return pagesVisited; }
+
   else {
-  
+
     // Determine the next page to scour
     var httpNextPage = nextPage();
-    
+
     // Pull down the HTML and scour it
     requestPromise(httpNextPage)
     .then(findPromise)
-    .then( function (result) { requestHTML ()  })
+    .then( function (result) { requestHTML(); })
+    .then( function (results) { return results; })
     .catch( function (error) { console.log('ERROR: ', error); return error; });
- 
- }   
+
+ }
 //     console.log('end of do while block');
-    
+
 //   } while (pagesToVisit.length);
 
 }
@@ -106,10 +113,8 @@ function requestPromise(addrCurrPage) {
 
 // Cleanup and standardize links for comparison
 function linkCleanup(links) {
-console.log(links);
   // Convert relative links to absolute links
   for (var i = 0; i < links.length; i++) {
-    console.log('lonks', links[i]);
     if (links[i] === undefined) { continue; }
     if (links[i].charAt(0) === '/') { links[i] = baseUrlHostname + links[i]; }
   }
@@ -141,8 +146,8 @@ function findUnique (input) {
   });
 }
 
+// Determine the next page to scour
 function nextPage () {
-  // Determine the next page to scour
     var next = pagesToVisit.pop();
     var nextUrlPathname = new parseURL(next).pathname;
     var nextPageToVisit = baseUrlHostname + nextUrlPathname;
