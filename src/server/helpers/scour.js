@@ -8,6 +8,10 @@ var pagesVisited = {};
 // Store pages that need to be crawled
 var pagesToVisit = [];
 
+// Declare a holding array for links and for images
+  var links = [];
+  var images = [];
+
 var results = {};
 
 // Store the hostname that starts our search
@@ -16,15 +20,10 @@ var baseUrlHostname;
 // Find href and src attributes within <a> and <img> tags respectively
 function findPromise(storedHTML) {
   return new Promise(function(resolve, reject) {
-// function find (parsedHTML) {
 
     if (storedHTML) {
       // Parse the HTML with cheerio
       var parsedHTML = cheerio.load(storedHTML);
-
-      // Declare holding arrays for links and image sources
-      var links = [];
-      var images = [];
 
       // Map over the parsed HTML to find href's inside <a> tags
       parsedHTML('a').map(function(i, link) {
@@ -39,6 +38,7 @@ function findPromise(storedHTML) {
 
       // Remove duplicates and standardize the link format of all the links found on the current page
       var parsedUniqueLinks = linkCleanup(links);
+      images = imageLinkCleanup(images);
 
       // Push new links that haven't yet been crawled to the array of pages to visit
       for (var i = 0; i < parsedUniqueLinks.length; i++) {
@@ -50,19 +50,21 @@ function findPromise(storedHTML) {
         if ( pagesVisited[concatParsedBase] !== true && pagesVisited[concatParsedBase + '/'] !== true && parsedBaseHostname === baseUrlHostname ) { pagesToVisit.push(parsedUniqueLinks[i]); }
       }
 
-      console.log('images: ', images);
-      console.log('visited: ', pagesVisited);
-      console.log('to visit: ', pagesToVisit);
-      
+//       console.log('links: ', links);
+//       console.log('images: ', images);
+//       console.log('visited: ', pagesVisited);
+//       console.log('to visit: ', pagesToVisit);
+
       results.siteMap = pagesVisited;
-      results.images = images; 
+      results.images = images;
+      results.links = links;
       
+      console.log(results);
+
       resolve(results);
     }
 
     else { reject(Error("there was an error in the find function")); }
-
-// }
 
   });
 }
@@ -78,7 +80,6 @@ if (url) {
   pagesToVisit.push('http://' + url.replace(/^(https?:\/\/)?(www\.)?/,''));
 }
   // Scour pages in the pagesToVisit array as long as there are pages left to visit
-//   do {
 
   if (!pagesToVisit.length) { return pagesVisited; }
 
@@ -95,9 +96,6 @@ if (url) {
     .catch( function (error) { console.log('ERROR: ', error); return error; });
 
  }
-//     console.log('end of do while block');
-
-//   } while (pagesToVisit.length);
 
 }
 
@@ -135,6 +133,33 @@ function linkCleanup(links) {
 
   // return an array of links
   return parsedUniqueLinks;
+
+}
+
+// Cleanup and standardize links for images
+function imageLinkCleanup(images) {
+  // Convert relative links to absolute links
+  for (var i = 0; i < images.length; i++) {
+    if (images[i] === undefined) { continue; }
+    if (images[i].charAt(0) === '/') { images[i] = baseUrlHostname + links[i]; }
+  }
+
+  // Remove duplicate links and strip the protocol and the www.
+  var uniqueImages = findUnique(images);
+
+  // Standardize the links scraped from the current page by removing the protocol and the www.
+  var parsedUniqueImages = [];
+
+  uniqueImages.forEach(function(el){
+    var hostname = new parseURL(el).hostname;
+    var pathname = new parseURL(el).pathname;
+    var concat = hostname + pathname;
+    var cleanup = 'http://' + concat.replace(/^(https?:\/\/)?(www\.)?/,'');
+    parsedUniqueImages.push(cleanup);
+  });
+
+  // return an array of links
+  return parsedUniqueImages;
 
 }
 
