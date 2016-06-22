@@ -45,11 +45,16 @@ function findPromise(storedHTML) {
       // Push new links that haven't yet been crawled to the array of pages to visit
       for (var i = 0; i < parsedUniqueLinks.length; i++) {
 
+        // Standardize the format of the URL
         var parsedBaseHostname = new parseURL(parsedUniqueLinks[i]).hostname;
         var parsedBasePathname = new parseURL(parsedUniqueLinks[i]).pathname;
         var concatParsedBase = parsedBaseHostname.replace(/^www\./,'') + parsedBasePathname;
 
-        if ( pagesVisited[concatParsedBase] !== true && pagesVisited[concatParsedBase + '/'] !== true && parsedBaseHostname === baseUrlHostname ) { pagesToVisit.push(parsedUniqueLinks[i]); }
+        // If we haven't visited this page AND it's on the same domain
+        // add it to the list of pages to scour
+        if ( pagesVisited[concatParsedBase] !== true && 
+             pagesVisited[concatParsedBase + '/'] !== true && 
+             parsedBaseHostname === baseUrlHostname ) { pagesToVisit.push(parsedUniqueLinks[i]); }
       }
 
 //       console.log('links: ', links);
@@ -74,30 +79,26 @@ function findPromise(storedHTML) {
 // Parse the HTML for a give URL
 function requestHTML (url) {
 
-if (url) {
-  // Determine the hostname for the starting URL
-  baseUrlHostname = new parseURL(url).hostname.replace(/^www\./,'');
-
-  // Populate the list of pages to visit with the hostname to start our search
-  pagesToVisit.push('http://' + url.replace(/^(https?:\/\/)?(www\.)?/,''));
-}
+  if (url) {// Determine the hostname for the starting URL
+            baseUrlHostname = new parseURL(url).hostname.replace(/^www\./,'');
+            
+            // Populate the list of pages to visit with the hostname to start our search
+            pagesToVisit.push('http://' + url.replace(/^(https?:\/\/)?(www\.)?/,''));
+  }
+  
   // Scour pages in the pagesToVisit array as long as there are pages left to visit
-
   if (!pagesToVisit.length) { return pagesVisited; }
 
-  else {
+  else {// Determine the next page to scour
+        var httpNextPage = nextPage();
 
-    // Determine the next page to scour
-    var httpNextPage = nextPage();
-
-    // Pull down the HTML and scour it
-    requestPromise(httpNextPage)
-    .then(findPromise)
-    .then( function (result) { requestHTML(); })
-    .then( function (results) { return results; })
-    .catch( function (error) { console.log('ERROR: ', error); return error; });
-
- }
+        // Pull down the HTML and scour it
+        requestPromise(httpNextPage)
+        .then(findPromise)
+        .then( function (result) { requestHTML(); })
+        .then( function (results) { return results; })
+        .catch( function (error) { console.log('ERROR: ', error); return error; });
+  }
 
 }
 
