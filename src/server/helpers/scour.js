@@ -14,6 +14,7 @@ var pagesToVisit = [];
 
 // Declare a holding array for links and for images
 var links = [];
+var allLinks =[];
 var images = [];
 
 // Store the hostname that starts our search
@@ -55,8 +56,10 @@ function findPromise(storedHTML) {
         if ( pagesVisited[concatParsedBase] !== true && 
              pagesVisited[concatParsedBase + '/'] !== true && 
              parsedBaseHostname === baseUrlHostname ) { pagesToVisit.push(parsedUniqueLinks[i]); }
+             
+        else { allLinks.push(parsedUniqueLinks[i]) }
       }
-
+      
 //       console.log('links: ', links);
 //       console.log('images: ', images);
 //       console.log('visited: ', pagesVisited);
@@ -64,7 +67,7 @@ function findPromise(storedHTML) {
 
       results.siteMap = pagesVisited;
       results.images = images;
-      results.links = links;
+      results.links = cleanup.findUnique(parsedUniqueLinks);
       
       console.log(results);
 

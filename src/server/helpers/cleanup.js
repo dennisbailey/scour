@@ -64,5 +64,6 @@ function findUnique (input) {
 
 module.exports = {
   linkCleanup : linkCleanup,
-  imageLinkCleanup : imageLinkCleanup
+  imageLinkCleanup : imageLinkCleanup,
+  findUnique : findUnique
 };
