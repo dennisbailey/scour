@@ -3,6 +3,9 @@ var request = require('request');
 var parseURL = require('url-parse');
 var cleanup = require('./cleanup');
 
+// Create an object to store the results
+var results = {};
+
 // Track the pages that are crawled
 var pagesVisited = {};
 
@@ -10,10 +13,8 @@ var pagesVisited = {};
 var pagesToVisit = [];
 
 // Declare a holding array for links and for images
-  var links = [];
-  var images = [];
-
-var results = {};
+var links = [];
+var images = [];
 
 // Store the hostname that starts our search
 var baseUrlHostname;
@@ -110,14 +111,6 @@ function requestPromise(addrCurrPage) {
   });
 }
 
-
-// Find unique values by sorting the array and checking a value against the previous value
-// This is destructive
-function findUnique (input) {
-  return input.sort().filter(function(item, pos, arr) {
-      return !pos || item != arr[pos - 1];
-  });
-}
 
 // Determine the next page to scour
 function nextPage () {
