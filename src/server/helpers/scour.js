@@ -50,14 +50,18 @@ function findPromise(storedHTML) {
         var parsedBaseHostname = new parseURL(parsedUniqueLinks[i]).hostname;
         var parsedBasePathname = new parseURL(parsedUniqueLinks[i]).pathname;
         var concatParsedBase = parsedBaseHostname.replace(/^www\./,'') + parsedBasePathname;
+        
+        var length = concatParsedBase.length;
+        
+        if (concatParsedBase.charAt(length-1) === '/') { concatParsedBase = concatParsedBase.slice(0, -1); }
 
         // If we haven't visited this page AND it's on the same domain
         // add it to the list of pages to scour
         if ( pagesVisited[concatParsedBase] !== true && 
-             pagesVisited[concatParsedBase + '/'] !== true && 
+//              pagesVisited[concatParsedBase + '/'] !== true && 
              parsedBaseHostname === baseUrlHostname ) { pagesToVisit.push(parsedUniqueLinks[i]); }
              
-        else { allLinks.push(parsedUniqueLinks[i]) }
+        else { allLinks.push(concatParsedBase) }
       }
       
 //       console.log('links: ', links);
